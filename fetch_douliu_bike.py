@@ -4,7 +4,7 @@ import pandas as pd
 import requests
 
 # TDX OAuth 2.0 Token 端點與雲林縣公共自行車端點（TDX v2）
-TOKEN_URL = "https://tdx.transportdata.tw/auth/realms/TDX/protocol/openid-connect/token"
+TOKEN_URL = "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token"
 STATION_URL = "https://tdx.transportdata.tw/api/basic/v2/Bike/Station/YunlinCounty?$format=JSON"
 AVAILABILITY_URL = "https://tdx.transportdata.tw/api/basic/v2/Bike/Availability/YunlinCounty?$format=JSON"
 
