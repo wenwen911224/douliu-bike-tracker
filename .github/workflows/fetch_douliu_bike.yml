@@ -1,10 +1,17 @@
+
 name: Fetch Douliu Bike Availability
 
 on:
   schedule:
-    # 每日台灣時間 06:00 - 22:00（UTC 14:00 - 23:59 與 00:00 - 05:59），每 15 分鐘執行一次
-    - cron: "*/15 14-23,0-5 * * *"
-  # 允許在 GitHub Actions 介面手動點選「Run workflow」立即測試
+    # 每日台灣時間 06:00 - 21:45，每 15 分鐘執行
+    - cron: "*/15 6-21 * * *"
+      timezone: "Asia/Taipei"
+
+    # 每日台灣時間 22:00，最後一次執行
+    - cron: "0 22 * * *"
+      timezone: "Asia/Taipei"
+
+  # 允許手動測試
   workflow_dispatch:
 
 # 賦予 workflow 將檔案 commit 並 push 回 repository 的權限
@@ -41,7 +48,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add data/
-          # 僅在 data/ 有新增或變更檔案時才建立 commit，避免空 commit 報錯
+
           if git diff --staged --quiet; then
             echo "No new data changes to commit."
           else
@@ -49,3 +56,4 @@ jobs:
             git commit -m "chore: fetch Douliu bike data at ${TW_TIME} (TST)"
             git push
           fi
+
