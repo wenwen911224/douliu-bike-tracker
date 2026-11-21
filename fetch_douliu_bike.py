@@ -38,10 +38,12 @@ def build_douliu_bike_df(stations_raw: list[dict], avail_raw: list[dict], fetche
     df_stations = pd.DataFrame(stations_raw)
     df_avail = pd.DataFrame(avail_raw)
 
+    print(f"雲林縣 Station 原始筆數：{len(df_stations)}，Availability 原始筆數：{len(df_avail)}")
+
     # 解析站點名稱
     if "StationName" in df_stations.columns:
         df_stations["station_name"] = df_stations["StationName"].apply(
-            lambda x: x.get("Zh_tw") if isinstance(x, dict) else None
+            lambda x: x.get("Zh_tw") if isinstance(x, dict) and pd.notna(x.get("Zh_tw")) else None
         )
     else:
         df_stations["station_name"] = None
@@ -49,12 +51,12 @@ def build_douliu_bike_df(stations_raw: list[dict], avail_raw: list[dict], fetche
     # 解析站點地址／位置
     if "StationAddress" in df_stations.columns:
         df_stations["address"] = df_stations["StationAddress"].apply(
-            lambda x: x.get("Zh_tw") if isinstance(x, dict) else None
+            lambda x: x.get("Zh_tw") if isinstance(x, dict) and pd.notna(x.get("Zh_tw")) else None
         )
     else:
         df_stations["address"] = None
 
-    # 解析行政區與座標
+    # 解析行政區（安全處理 dict / str / NaN / float）
     def extract_town(row):
         pos = row.get("StationPosition")
         if isinstance(pos, dict):
@@ -69,6 +71,7 @@ def build_douliu_bike_df(stations_raw: list[dict], avail_raw: list[dict], fetche
             return "斗六市"
         return ""
 
+    # 解析經緯度座標作為備用位置資訊
     def extract_coords(row):
         pos = row.get("StationPosition")
         if isinstance(pos, dict):
@@ -87,7 +90,7 @@ def build_douliu_bike_df(stations_raw: list[dict], avail_raw: list[dict], fetche
         axis=1,
     )
 
-    # 合併站點靜態資訊與即時借還車數
+    # 合併站點靜態資訊與即時借還車數（以站點主檔為主做 left join，避免單站缺動態資料而遺失）
     station_cols = [c for c in ["StationUID", "StationID", "station_name", "location", "town"] if c in df_stations.columns]
     avail_cols = [
         c for c in ["StationUID", "StationID", "AvailableRentBikes", "AvailableReturnBikes", "ServiceStatus", "UpdateTime"]
@@ -99,14 +102,14 @@ def build_douliu_bike_df(stations_raw: list[dict], avail_raw: list[dict], fetche
         df_stations[station_cols].drop_duplicates(subset=[join_key]),
         df_avail[avail_cols].drop_duplicates(subset=[join_key]),
         on=join_key,
-        how="inner",
+        how="left",
     )
 
-    # 篩選斗六市站點
+    # 篩選斗六市站點（比對行政區、站名、位置，以及斗六郵遞區號 640）
     is_douliu = (
         merged["town"].astype(str).str.contains("斗六", na=False)
         | merged["station_name"].astype(str).str.contains("斗六", na=False)
-        | merged["location"].astype(str).str.contains("斗六", na=False)
+        | merged["location"].astype(str).str.contains("斗六|640", na=False)
     )
     douliu_df = merged[is_douliu].copy()
 
