@@ -1,18 +1,19 @@
 
 name: Fetch Douliu Bike Availability
 
+
 on:
   schedule:
     # 每日台灣時間 06:00 - 21:45，每 15 分鐘執行
-    - cron: "*/15 6-21 * * *"
+    - cron: "0,15,30,45 6-21 * * *"
       timezone: "Asia/Taipei"
 
     # 每日台灣時間 22:00，最後一次執行
     - cron: "0 22 * * *"
       timezone: "Asia/Taipei"
 
-  # 允許手動測試
   workflow_dispatch:
+
 
 # 賦予 workflow 將檔案 commit 並 push 回 repository 的權限
 permissions:
