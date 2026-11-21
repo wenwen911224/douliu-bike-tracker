@@ -55,9 +55,17 @@ def build_douliu_bike_df(stations_raw: list[dict], avail_raw: list[dict], fetche
         )
     else:
         df_stations["address"] = None
-        # 【實用小技巧】印出 TDX 雲林縣目前回傳的所有站點名稱與總數，方便與 98 站名單核對
+
+    # 逐行印出 TDX 雲林縣所有站點名稱，並存成文字檔方便完整核對
     all_yunlin_names = df_stations["station_name"].dropna().tolist()
-    print(f"TDX 雲林縣所有站點名稱（共 {len(all_yunlin_names)} 站）：", all_yunlin_names)
+    print(f"=== TDX 雲林縣站點名稱清單（共 {len(all_yunlin_names)} 站）===")
+    for idx, name in enumerate(all_yunlin_names, start=1):
+        print(f"{idx:03d}. {name}")
+
+    os.makedirs("data", exist_ok=True)
+    with open(os.path.join("data", "all_yunlin_stations.txt"), "w", encoding="utf-8") as f:
+        for idx, name in enumerate(all_yunlin_names, start=1):
+            f.write(f"{idx:03d}. {name}\n")
 
     # 解析行政區（安全處理 dict / str / NaN / float）
     def extract_town(row):
