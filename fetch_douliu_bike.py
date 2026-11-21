@@ -57,24 +57,33 @@ def build_douliu_bike_df(stations_raw: list[dict], avail_raw: list[dict], fetche
     # 解析行政區與座標
     def extract_town(row):
         pos = row.get("StationPosition")
-        if isinstance(pos, dict) and pos.get("Town"):
-            return pos.get("Town")
-        addr = row.get("address") or ""
-        return "斗六市" if "斗六" in addr else ""
+        if isinstance(pos, dict):
+            town = pos.get("Town")
+            if isinstance(town, str) and town.strip():
+                return town.strip()
+            if isinstance(town, dict) and town.get("Zh_tw"):
+                return str(town.get("Zh_tw")).strip()
+
+        addr = row.get("address")
+        if pd.notna(addr) and isinstance(addr, str) and "斗六" in addr:
+            return "斗六市"
+        return ""
 
     def extract_coords(row):
         pos = row.get("StationPosition")
         if isinstance(pos, dict):
             lat = pos.get("PositionLat")
             lon = pos.get("PositionLon")
-            if lat is not None and lon is not None:
+            if pd.notna(lat) and pd.notna(lon):
                 return f"{lat}, {lon}"
         return ""
 
     df_stations["town"] = df_stations.apply(extract_town, axis=1)
     df_stations["coords"] = df_stations.apply(extract_coords, axis=1)
     df_stations["location"] = df_stations.apply(
-        lambda r: r["address"] if pd.notna(r["address"]) and str(r["address"]).strip() != "" else r["coords"],
+        lambda r: str(r["address"]).strip()
+        if pd.notna(r["address"]) and isinstance(r["address"], str) and r["address"].strip() != ""
+        else r["coords"],
         axis=1,
     )
 
