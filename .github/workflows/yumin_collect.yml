@@ -72,7 +72,7 @@ jobs:
           TDX_CLIENT_SECRET: ${{ secrets.TDX_CLIENT_SECRET }}
 
         run: |
-          fetch_douliu_bike.py
+          python fetch_douliu_bike.py
 
 
       # ----------------------------------------
